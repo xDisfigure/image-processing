@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image processing playground</title>
+</head>
+<body>
+<canvas id="canvas" style="border: 1px solid black;"/>
+<script>
+    const luminance = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b)
+    const rgb = (r, g, b) => ({r, g ,b})
+
+    const image = new Image();
+
+    image.crossOrigin = 'anonymous';
+    image.src = 'img_2.png';
+    image.onload = () => {
+        const width = image.naturalWidth
+        const height = image.naturalHeight
+
+        document.body.prepend(image)
+
+        const scaleRatio = 1
+        const scaledWidth = width * scaleRatio
+        const scaledHeight = height * scaleRatio
+        const canvasElement = document.getElementById('canvas')
+        canvasElement.setAttribute('width', scaledWidth)
+        canvasElement.setAttribute('height', scaledHeight)
+
+        const canvasContext = canvasElement.getContext('2d')
+
+        canvasContext.scale(scaleRatio, scaleRatio)
+        canvasContext.drawImage(image, 0, 0)
+
+        const imageData = canvasContext.getImageData(0, 0, scaledWidth, scaledHeight)
+        const pixels = imageData.data
+
+        console.log(`total pixels: ${pixels}\n estimated total pixels: ${scaledHeight * scaledWidth * 4 }`);
+
+        console.time('processing')
+        const primary = rgb(0, 0, 0)
+        const secondary = rgb(255, 255, 255)
+
+        for (let y = 0; y < scaledHeight; y++) {
+            for (let x = 0; x < scaledWidth ; x++) {
+                const position = 4 * x + y * (4 * scaledWidth)
+                const originalR = pixels[position]
+                const originalG = pixels[position + 1]
+                const originalB = pixels[position + 2]
+
+                const gray = Math.max(originalR, originalG, originalB)
+
+                const whiteRatio = (gray / 255)
+                const blackRatio = 1 - whiteRatio
+
+                const r = blackRatio * primary.r + whiteRatio * secondary.r
+                const g = blackRatio * primary.g + whiteRatio * secondary.g
+                const b = blackRatio * primary.b + whiteRatio * secondary.b
+
+                pixels[position] = r
+                pixels[position + 1] = g
+                pixels[position + 2] = b
+            }
+        }
+
+        canvasContext.scale(1,1)
+        canvasContext.putImageData(imageData, 0, 0)
+        console.timeEnd('processing')
+    }
+</script>
+</body>
+</html>
