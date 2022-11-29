@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Image processing playground</title>
 </head>
-<body>
+<body style="display: flex;">
 <canvas id="canvas" style="border: 1px solid black;"/>
 <script>
     const luminance = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b)
@@ -13,19 +13,21 @@
     const image = new Image();
 
     image.crossOrigin = 'anonymous';
-    image.src = 'img_2.png';
+    image.src = 'img.png';
     image.onload = () => {
         const width = image.naturalWidth
         const height = image.naturalHeight
 
-        document.body.prepend(image)
+        document.body.prepend(image);
+        const scaleRatio = 0.3
 
-        const scaleRatio = 1
         const scaledWidth = width * scaleRatio
         const scaledHeight = height * scaleRatio
         const canvasElement = document.getElementById('canvas')
         canvasElement.setAttribute('width', scaledWidth)
         canvasElement.setAttribute('height', scaledHeight)
+        image.setAttribute('width', scaledWidth)
+        image.setAttribute('height', scaledHeight)
 
         const canvasContext = canvasElement.getContext('2d')
 
@@ -38,8 +40,10 @@
         console.log(`total pixels: ${pixels}\n estimated total pixels: ${scaledHeight * scaledWidth * 4 }`);
 
         console.time('processing')
-        const primary = rgb(0, 0, 0)
-        const secondary = rgb(255, 255, 255)
+        // green
+        const primary = rgb(102, 255, 51)
+        // black
+        const secondary = rgb(0, 0, 0)
 
         for (let y = 0; y < scaledHeight; y++) {
             for (let x = 0; x < scaledWidth ; x++) {
@@ -49,8 +53,9 @@
                 const originalB = pixels[position + 2]
 
                 const gray = Math.max(originalR, originalG, originalB)
+                const avg = (originalR + originalG + originalB) / 3
 
-                const whiteRatio = (gray / 255)
+                const whiteRatio = (gray / 255) * (avg / 255)
                 const blackRatio = 1 - whiteRatio
 
                 const r = blackRatio * primary.r + whiteRatio * secondary.r
